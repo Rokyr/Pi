@@ -1,0 +1,141 @@
+import time
+import random
+import math
+from decimal import Decimal, getcontext
+import numpy as np
+
+pi = "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679"
+
+
+def comparison(pi, pi_g):
+    counter = 0
+
+    for i in range(len(min(pi, pi_g))):
+        if pi[i] == pi_g[i]:
+            counter += 1
+        else:
+            break
+
+    print(f"Correct number of consecutive digits: {counter-1}")
+    print(f"Following digits were correct: {pi[:counter]}")
+    return counter -1
+
+
+def monte_carlo():
+    runs = 0
+    in_circle = 0
+
+    start_time = time.time()
+    end_time = start_time + 1
+
+    while time.time() < end_time:
+        runs += 1
+        r = (random.random()) ** 2 + (random.random()) ** 2
+        if r <= 1:
+            in_circle += 1
+
+    pi_est = 4 * in_circle / runs
+    pi_g = str(pi_est)[:len(pi)]
+    pi_l = comparison(pi, pi_g)
+    print(f"Number of runs {runs/1000000}m")
+    comparison(pi, pi_g)
+    return {'runs': runs, 'pi_l': pi_l}
+
+
+def nilakantha():
+    runs = 0
+    a, a1, a2, a3 =1, 2, 3, 4
+    n = 0
+    start_time = time.time()
+    end_time = start_time + 1
+    while time.time() < end_time:
+
+        runs += 1
+        s = a / (a1 * a2 * a3)
+
+        n = n + s
+        a *= -1
+        a1 += 2
+        a2 += 2
+        a3 += 2
+
+    pi_est = 4 * n + 3
+    pi_g = str(pi_est)[:len(pi)]
+    pi_l = comparison(pi, pi_g)
+    print(f"Number of runs {runs/1000000}m")
+    comparison(pi, pi_g)
+    return {'runs': runs, 'pi_l': pi_l}
+
+
+def leibniz():
+    a = 1
+    runs = 0
+    n = 0
+    start_time = time.time()
+    end_time = start_time + 1
+
+    while time.time() < end_time:
+
+        n += a /(2*runs + 1)
+        runs += 1
+        a = a * -1
+
+    pi_est = 4 * n
+    pi_g = str(pi_est)[:len(pi)]
+    pi_l = comparison(pi, pi_g)
+    print(f"Number of runs {runs / 1000000}m")
+    comparison(pi, pi_g)
+    return {'runs': runs, 'pi_l': pi_l}
+
+
+def chudnovsky():
+    getcontext().prec = 100
+    runs = 0
+    c = 0
+
+    start_time = time.time()
+    end_time = start_time + 1
+    while time.time() < end_time:
+        a = Decimal(math.factorial(6 * runs)) * (Decimal(13591409) + Decimal(545140134) * runs)
+        b = Decimal(math.factorial(3 * runs)) * (Decimal(math.factorial(runs)) ** 3) * (Decimal(-262537412640768000) ** runs)
+        c += Decimal(a) / Decimal(b)
+
+        runs += 1
+
+    pi_est = Decimal(426880) * Decimal(10005).sqrt() / c
+    pi_g = str(pi_est)[:len(pi)]
+    pi_l = comparison(pi, pi_g)
+    print(f"Number of runs {runs / 1000000}m")
+    comparison(pi, pi_g)
+    return {'runs': runs, 'pi_l': pi_l}
+
+
+def calculate_pi():
+    titles = ['Method', 'Number of Runs', 'Correct Digits']
+    results = []
+
+    pi_chudnovsky = chudnovsky()
+    chudnovsky_row = ['Chudnovsky', pi_chudnovsky['runs'], pi_chudnovsky['pi_l']]
+    results.append(chudnovsky_row)
+
+    pi_monte_carlo = monte_carlo()
+    monte_carlo_row = ['Monte Carlo', pi_monte_carlo['runs'], pi_monte_carlo['pi_l']]
+    results.append(monte_carlo_row)
+
+    pi_nilakantha = nilakantha()
+    nilakantha_row = ['Nilakantha', pi_nilakantha['runs'], pi_nilakantha['pi_l']]
+    results.append(nilakantha_row)
+
+    pi_leibniz = leibniz()
+    leibniz_row = ['Leibniz', pi_leibniz['runs'], pi_leibniz['pi_l']]
+    results.append(leibniz_row)
+
+    pi_results = np.array(results)
+
+    pi_table = np.vstack([titles, pi_results])
+
+    np.savetxt('pi_results.csv', pi_table, delimiter=',', fmt='%s')
+
+    return pi_results
+
+calculate_pi()
